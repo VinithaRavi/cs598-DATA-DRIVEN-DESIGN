@@ -19,6 +19,8 @@ if __name__=="__main__":
 
     print (len(filenames))
 
+    total_images = 0
+
     for file in filenames:
         category = file.split(".txt")[0]
         urls = open(path+file, 'r')
@@ -28,6 +30,10 @@ if __name__=="__main__":
         for url in urls:
             count += 1
             url = url.strip()
-            print (count, url)
-            s = Style(url, category, count)
-        exit()
+            #print (count, url)
+            total_images += 1
+            #s = Style(url, category, count)
+        print (category, count)
+        #exit()
+
+    print (total_images)

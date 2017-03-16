@@ -14,8 +14,8 @@ import json
 
 url = "http://lookbook.nu/look/8626543-Zara-Blazer-Rayban-Sunnies-Scarf-Shirt-Cropped"
 
-image_path = "../crawling/images/"
-data_path = "../crawling/data/"
+image_path = "../crawling_results/images/"
+data_path = "../crawling_results/data/"
 
 def check_dir_exists(dir_path):
     """
@@ -45,7 +45,7 @@ class Style():
 
         self.create_soup()
         self.populate_image_data()
-        self._image_data.print_details()
+        #self._image_data.print_details()
         self._image_data.build_json()
         self.save_data()
 
@@ -146,10 +146,18 @@ class Style():
         user = {}
 
         for content in user_div:
-            if content.name=="a":
+            if content.name=="a" and content.attrs["class"][1] == "user-avatar":
                 user["name"] = content.attrs["title"]
                 user["url"] = "https://lookbook.nu" + content.attrs["href"]
-                break
+            if content.name == "div" and content.attrs["class"][0] == "info":
+                div_contents = content.contents
+                for temp in div_contents:
+                    if temp.name == "p":
+                        if temp.attrs["class"][0] == "byline":
+                            info = " ".join(temp.text.split())
+                            user["info"] = info
+                        elif temp.attrs["class"][0] == "location":
+                            user["location"] = temp.contents[3].contents[0]
 
         return user
 

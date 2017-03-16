@@ -1,42 +1,66 @@
-
 from bs4 import BeautifulSoup
 import urllib.request
+from urllib.error import HTTPError
+import os
+
+path = "../categories_url/"
 
 
+def check_dir_exists(dir_path):
+    """
+    Checks if the directory exists, if not creates it
+    :param dir_path: the directory path
+    """
 
-#opfile=file()
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+
 def addURLs(style):
 
-   num = 1;  # starting page
-   foundEnd = False;
+   num = 1
+   myURLS = []
 
-   while not foundEnd and num < 100:         # right now web addresses does not work above 100
+   while True:
 
-        myURLS = []
-        page=urllib.request.urlopen('http://lookbook.nu/search?page=' + str(num) + '&amp;q=%11' + style)
-        soup=BeautifulSoup(page)
-        mytags = soup.find_all("h3", class_="bigger force_wrap")
+        try:
+            #Use this to crawl for hashtags
+            #page=urllib.request.urlopen('http://lookbook.nu/search?page=' + str(num) + '&amp;q=%11' + style)
 
-        if not mytags:              # stops iterating when there is no more results
-            foundEnd = True
-        #print('mytags: ' + str(not mytags))
+            #Use this to crawl for urls in the respective categories
+            web_page = 'http://lookbook.nu/explore/' + style + '?page=' + str(num)
+            print (web_page)
+            page = urllib.request.urlopen(web_page)
 
+        except HTTPError:
+            break
 
-        f = open(style + '.txt', 'a')
+        soup=BeautifulSoup(page, 'html.parser')
+        mytags = soup.find_all("a", {"class": "look-image-link"})
+        #mytags = soup.find_all("h3", class_="bigger force_wrap")
 
-        #print(mytags)
+        if not mytags:
+            break
+
         for tag in mytags:
-           #print(tag.attrs[attr])
-           myURLS.append(tag.find('a').attrs['href'])
-           f.write('http://lookbook.nu' + tag.find('a').attrs['href'] + '\n')
-        print("style: " + style + " page: " + str(num))
+           #myURLS.append(tag.find('a').attrs['href'])
+           myURLS.append(tag.attrs['href'])
 
+        print("style: " + style + " page: " + str(num))
         num += 1
 
+   with open(path + style + ".txt", 'w') as f:
+       for url in myURLS:
+           #f.write('http://lookbook.nu' + url + '\n')
+           f.write(url + '\n')
 
-lines = []
-with open("categories.txt") as file:
-    for line in file:
-        line = line.strip()  # or someother preprocessing
-        addURLs(line)
+
+if __name__ == "__main__":
+
+    check_dir_exists(path)
+
+    with open("../categories/categories.txt") as file:
+        for line in file:
+            line = line.strip()
+            addURLs(line)
 
