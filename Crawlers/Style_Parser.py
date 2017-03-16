@@ -1,7 +1,7 @@
 """
 Description:
 
-Style_parser.py crawls a list of URLs for obtaining detailed information about the images
+Style_parser.py crawls a URLs for obtaining detailed information about the images
 """
 
 __author__ = "Manav Kedia"
@@ -9,24 +9,53 @@ __author__ = "Manav Kedia"
 from bs4 import BeautifulSoup
 import urllib.request
 from Crawlers.Image_Data import Image
+import os
+import json
 
 url = "http://lookbook.nu/look/8626543-Zara-Blazer-Rayban-Sunnies-Scarf-Shirt-Cropped"
 
-#TO-DO: Handle exceptions if any of the following are not present
+image_path = "../crawling/images/"
+data_path = "../crawling/data/"
 
+def check_dir_exists(dir_path):
+    """
+    Checks if the directory exists, if not creates it
+    :param dir_path: the directory path
+    """
+
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+#TO-DO: Handle exceptions if any of the following are not present
 class Style():
-    def __init__(self, url, style):
+    def __init__(self, url, category, count):
         """
         Initializes the variables and creates the soup object
         :param url: The url of the image that is to be crawled
         """
         self._url = url
         self._soup = None
-        self._image_data = Image(style)
+        self._image_data = Image(category)
+        self._category = category
+        self._count = count
+
+        #Check if path exists
+        check_dir_exists(image_path + self._category)
+        check_dir_exists(data_path + self._category)
 
         self.create_soup()
         self.populate_image_data()
         self._image_data.print_details()
+        self._image_data.build_json()
+        self.save_data()
+
+
+    def save_data(self):
+        data_filename = data_path + self._category + "/" + str(self._count) + ".json"
+        data = self._image_data.get_json()
+        with open(data_filename, 'w') as f:
+            json.dump(data, f)
+
 
     def populate_image_data(self):
         """
@@ -69,8 +98,17 @@ class Style():
         TO-DO could have the case of multiple images in the webpage
         :return: a string of image url
         """
-        image_div = self._soup.find("div", {"id":"look_photo_container"}).attrs["style"]
-        image_url = image_div.split("background-image:url('")[1].split("');")[0]
+        image_div = self._soup.find("div", {"id":"look_photo_container"}).contents
+        image_url = ""
+
+        for img in image_div:
+            if img.name == "a":
+                image_url = "https:" + img.contents[0].attrs["src"][:-2]
+
+        #Download this image locally
+        if image_url != None:
+            local_filename = image_path  + self._category + "/" + str(self._count) + ".jpg"
+            urllib.request.urlretrieve(image_url, local_filename)
 
         return image_url
 
@@ -81,8 +119,13 @@ class Style():
         :return: a list of strings containing the items
         """
 
-        items_divs = self._soup.find("div", {"class":"look-items-list"}).contents
         items = []
+
+        items_divs = self._soup.find("div", {"class":"look-items-list"})
+        if items_divs == None:
+            return items
+
+        item_divs = items_divs.content
 
         for item_div in items_divs:
             if item_div.name=="div":
@@ -105,7 +148,7 @@ class Style():
         for content in user_div:
             if content.name=="a":
                 user["name"] = content.attrs["title"]
-                user["url"] = content.attrs["href"]
+                user["url"] = "https://lookbook.nu" + content.attrs["href"]
                 break
 
         return user
@@ -132,10 +175,8 @@ class Style():
                     elif "data-page-track" in brand.attrs and "brand" in brand.attrs["data-page-track"]:
                         flag = True
 
-
-
         return brands
 
 
 if __name__=="__main__":
-    s = Style(url, "Futuristic")
+    s = Style(url, "Futuristic", 1)
