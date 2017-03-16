@@ -9,7 +9,7 @@ __author__ = "Manav Kedia"
 from Crawlers.Style_Parser import Style
 from os import walk
 
-path = "../results/"
+path = "../categories_url/"
 
 if __name__=="__main__":
 
