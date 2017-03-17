@@ -8,7 +8,7 @@ __author__ = "Manav Kedia"
 
 from bs4 import BeautifulSoup
 import urllib.request
-from Crawlers.Image_Data import Image
+from Code.Image_Data import Image
 import os
 import json
 
