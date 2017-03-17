@@ -24,6 +24,9 @@ if __name__=="__main__":
     for file in filenames:
         category = file.split(".txt")[0]
         urls = open(path+file, 'r')
+        # if category == "90s":
+        #     count = 676
+        # else:
         count = 0
         print ("Category : " + category)
 

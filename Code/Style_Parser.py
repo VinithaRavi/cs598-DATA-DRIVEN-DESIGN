@@ -81,7 +81,7 @@ class Style():
 
             self._soup = BeautifulSoup(lookshop_html, 'html.parser')
         except:
-            print ("Error: "  + self.url + " not found")
+            print ("Error: "  + self._url + " not found")
 
 
     def get_hashtags(self):
