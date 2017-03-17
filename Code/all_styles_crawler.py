@@ -9,7 +9,7 @@ __author__ = "Manav Kedia"
 from Code.Style_Parser import Style
 from os import walk
 
-path = "../categories_url/"
+path = "../categories_url/manav/"
 
 if __name__=="__main__":
 
@@ -17,7 +17,7 @@ if __name__=="__main__":
     for(dirpath, dirnames, files) in walk(path):
         filenames.extend(files)
 
-    print (len(filenames))
+    #print (len(filenames))
 
     total_images = 0
 
@@ -25,6 +25,7 @@ if __name__=="__main__":
         category = file.split(".txt")[0]
         urls = open(path+file, 'r')
         count = 0
+        print ("Category : " + category)
 
         for url in urls:
             count += 1
