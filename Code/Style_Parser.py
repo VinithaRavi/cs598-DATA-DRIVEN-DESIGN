@@ -74,11 +74,14 @@ class Style():
         Create the soup object
         :return: None
         """
-        lookshop_file = urllib.request.urlopen(self._url)
-        lookshop_html = lookshop_file.read()
-        lookshop_file.close()
+        try:
+            lookshop_file = urllib.request.urlopen(self._url)
+            lookshop_html = lookshop_file.read()
+            lookshop_file.close()
 
-        self._soup = BeautifulSoup(lookshop_html, 'html.parser')
+            self._soup = BeautifulSoup(lookshop_html, 'html.parser')
+        except:
+            print ("Error: "  + self.url + " not found")
 
 
     def get_hashtags(self):
