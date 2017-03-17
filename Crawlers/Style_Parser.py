@@ -86,10 +86,15 @@ class Style():
         Extract the hashtags from the URL
         :return: The list of hashtags
         """
-        hashtags =  self._soup.find("p", {"id":"look_descrip"}).text
-        hashtags = hashtags.split("#")
+        hashtags = []
 
-        return hashtags[1:]
+        try:
+            hashtags =  self._soup.find("p", {"id":"look_descrip"}).text
+            hashtags = hashtags.split("#")[1:]
+        except:
+            print ("Error: No hashtags found for " + self._url)
+
+        return hashtags
 
 
     def get_image_url(self):
@@ -98,17 +103,21 @@ class Style():
         TO-DO could have the case of multiple images in the webpage
         :return: a string of image url
         """
-        image_div = self._soup.find("div", {"id":"look_photo_container"}).contents
         image_url = ""
 
-        for img in image_div:
-            if img.name == "a":
-                image_url = "https:" + img.contents[0].attrs["src"][:-2]
+        try:
+            image_div = self._soup.find("div", {"id":"look_photo_container"}).contents
 
-        #Download this image locally
-        if image_url != None:
-            local_filename = image_path  + self._category + "/" + str(self._count) + ".jpg"
-            urllib.request.urlretrieve(image_url, local_filename)
+            for img in image_div:
+                if img.name == "a":
+                    image_url = "https:" + img.contents[0].attrs["src"][:-2]
+
+            #Download this image locally
+            if image_url != None:
+                local_filename = image_path  + self._category + "/" + str(self._count) + ".jpg"
+                urllib.request.urlretrieve(image_url, local_filename)
+        except:
+            print ("Error: No image url found for " + self._url)
 
         return image_url
 
@@ -121,18 +130,22 @@ class Style():
 
         items = []
 
-        items_divs = self._soup.find("div", {"class":"look-items-list"})
-        if items_divs == None:
-            return items
+        try:
 
-        item_divs = items_divs.content
+            items_divs = self._soup.find("div", {"class":"look-items-list"})
+            if items_divs == None:
+                return items
 
-        for item_div in items_divs:
-            if item_div.name=="div":
-                item = " ".join(item_div.text.split())
-                #This line removes the number in the beginning of the list
-                item = " ".join(item.split(" ")[1:])
-                items.append(item)
+            item_divs = items_divs.content
+
+            for item_div in items_divs:
+                if item_div.name=="div":
+                    item = " ".join(item_div.text.split())
+                    #This line removes the number in the beginning of the list
+                    item = " ".join(item.split(" ")[1:])
+                    items.append(item)
+        except:
+            print ("Error: No items found for " + self._url)
 
         return items
 
@@ -142,22 +155,26 @@ class Style():
         Get the user and his/her instagram url from the page
         :return: A dictionary of user_name and user_url
         """
-        user_div = self._soup.find("div", {"class":"user-summary"}).contents
         user = {}
 
-        for content in user_div:
-            if content.name=="a" and content.attrs["class"][1] == "user-avatar":
-                user["name"] = content.attrs["title"]
-                user["url"] = "https://lookbook.nu" + content.attrs["href"]
-            if content.name == "div" and content.attrs["class"][0] == "info":
-                div_contents = content.contents
-                for temp in div_contents:
-                    if temp.name == "p":
-                        if temp.attrs["class"][0] == "byline":
-                            info = " ".join(temp.text.split())
-                            user["info"] = info
-                        elif temp.attrs["class"][0] == "location":
-                            user["location"] = temp.contents[3].contents[0]
+        try:
+            user_div = self._soup.find("div", {"class":"user-summary"}).contents
+
+            for content in user_div:
+                if content.name=="a" and content.attrs["class"][1] == "user-avatar":
+                    user["name"] = content.attrs["title"]
+                    user["url"] = "https://lookbook.nu" + content.attrs["href"]
+                if content.name == "div" and content.attrs["class"][0] == "info":
+                    div_contents = content.contents
+                    for temp in div_contents:
+                        if temp.name == "p":
+                            if temp.attrs["class"][0] == "byline":
+                                info = " ".join(temp.text.split())
+                                user["info"] = info
+                            elif temp.attrs["class"][0] == "location":
+                                user["location"] = temp.contents[3].contents[0]
+        except:
+            print("Error: No user found for " + self._url)
 
         return user
 
@@ -167,21 +184,26 @@ class Style():
         Get the list of brands on the url
         :return: A list of strings which are the available brands on the page url
         """
-        brand_divs = self._soup.find_all("div", {"class":"spotlight-user"})
+
         brands = []
 
-        flag = False
-        for brand_div in brand_divs:
-            for brand in brand_div.contents:
-                if brand.name=="div":
-                    if flag==True:
-                        brand_cur = " ".join(brand.text.split())
-                        brand_cur = brand_cur.split(" Fanned Fan")
-                        brands.append(brand_cur[0])
-                        flag=False
+        try:
+            brand_divs = self._soup.find_all("div", {"class":"spotlight-user"})
 
-                    elif "data-page-track" in brand.attrs and "brand" in brand.attrs["data-page-track"]:
-                        flag = True
+            flag = False
+            for brand_div in brand_divs:
+                for brand in brand_div.contents:
+                    if brand.name=="div":
+                        if flag==True:
+                            brand_cur = " ".join(brand.text.split())
+                            brand_cur = brand_cur.split(" Fanned Fan")
+                            brands.append(brand_cur[0])
+                            flag=False
+
+                        elif "data-page-track" in brand.attrs and "brand" in brand.attrs["data-page-track"]:
+                            flag = True
+        except:
+            print("Error: No brands found for " + self._url)
 
         return brands
 
