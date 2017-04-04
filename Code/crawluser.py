@@ -12,6 +12,8 @@ print(paths)
 
 # variables for statistics
 locations = []
+locationCount = {}
+filterlocationCount = {}
 urls = []
 totalentries = 0
 hasagecount = 0
@@ -21,6 +23,37 @@ nogendercount = 0
 
 uniqueusers = {}
 uniquelocations = 397
+
+for folder in paths:
+    filesname = []
+    for (dirpath, dirnames, files) in walk(folder):
+        #print(len(files))
+        for jsonfile in files:
+            with open(folder + '/' + jsonfile) as data_file:
+                data = json.load(data_file)
+                print(data)
+            try:
+                #print(data["user"]["location"])
+                loc = data["user"]["location"]
+                if loc not in locations:
+                    locations.append(loc)
+                    locationCount[loc] = 0
+                locationCount[loc] += 1
+
+            except KeyError:
+                print('cannot find location2')
+
+
+filterlocation = []
+for key,value in locationCount.items():
+    if value > 10:
+        filterlocation.append(key)
+        filterlocationCount[key] = value
+
+uniquelocations = len(filterlocationCount)
+
+
+
 
 for folder in paths:
     filesname = []
@@ -68,9 +101,8 @@ for folder in paths:
             try:
                 #print(data["user"]["location"])
                 loc = data["user"]["location"]
-                if loc not in locations:
-                    locations.append(loc)
-                agegenderlocvector[locations.index(loc)] = 1
+                if loc in filterlocation:
+                    agegenderlocvector[filterlocation.index(loc)] = 1
 
             except KeyError:
                 print('cannot find location')
@@ -94,6 +126,10 @@ with open('userdata.json', 'w') as f:
 
 
 print('unique location: ' + str(len(locations)))
+with open('uniquelocation.json', 'w', encoding="utf-8") as f:
+    for key,value in filterlocationCount.items():
+        f.write(str(key) + ': ' + str(value) +'\n')
+
 print('unique users: ' + str(len(urls)))
 print('total entries: ' + str(totalentries))
 print('female count: ' + str(femalecount))
