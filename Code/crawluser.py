@@ -24,6 +24,11 @@ nogendercount = 0
 uniqueusers = {}
 uniquelocations = 397
 
+# find the number of unique locations and its frequency. Filter if needed.
+# filterlocation: stores unique locations in a list. It is used to find the index later when we construct the location vector
+# filterlocationCount: contains the unique locations and its frequency
+# TODO: remove repeating elements of California from LocationCount
+# TODO: do the above with locationCount (optional) because it is only used for printing results
 for folder in paths:
     filesname = []
     for (dirpath, dirnames, files) in walk(folder):
@@ -35,18 +40,16 @@ for folder in paths:
             try:
                 #print(data["user"]["location"])
                 loc = data["user"]["location"]
-                if loc not in locations:
-                    locations.append(loc)
+                if loc not in locationCount:  # TODO: and not in list of variations
                     locationCount[loc] = 0
-                locationCount[loc] += 1
+                locationCount[loc] += 1 # TODO: increment also if loc is in list of variation (optional but hard
+                                        # TODO: because variation might come before real index exists)
 
             except KeyError:
                 print('cannot find location2')
-
-
 filterlocation = []
 for key,value in locationCount.items():
-    if value > 10:
+    if value > 0:
         filterlocation.append(key)
         filterlocationCount[key] = value
 
@@ -54,7 +57,8 @@ uniquelocations = len(filterlocationCount)
 
 
 
-
+# Goes through every JSON file and generate the corresponding agegenderlocvec
+# TODO: see location part
 for folder in paths:
     filesname = []
     for (dirpath, dirnames, files) in walk(folder):
@@ -103,6 +107,9 @@ for folder in paths:
                 loc = data["user"]["location"]
                 if loc in filterlocation:
                     agegenderlocvector[filterlocation.index(loc)] = 1
+                # TODO: if loc is an variation of California or other places
+                # TODO: find the corresponding correct index
+
 
             except KeyError:
                 print('cannot find location')
@@ -125,7 +132,9 @@ with open('userdata.json', 'w') as f:
 
 
 
-print('unique location: ' + str(len(locations)))
+# Statistics
+
+print('unique location: ' + str(len(locationCount)))
 with open('uniquelocation.json', 'w', encoding="utf-8") as f:
     for key,value in filterlocationCount.items():
         f.write(str(key) + ': ' + str(value) +'\n')
